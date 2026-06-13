@@ -19,9 +19,17 @@ Requirements:
 4. On fullscreen exit:
    - Restore the exact previous frame.
    - Restore floating overlay behavior.
-5. Do not use native macOS fullscreen spaces mode if it creates a separate fullscreen Space. We want instant overlay-style fullscreen on the current screen.
-6. Escape key should exit fullscreen if active.
+5. Do not use native macOS fullscreen spaces mode if it creates a separate fullscreen Space. We want instant overlay-style fullscreen on the current screen with no animation.
+6. Alt+shift+f should trigger the fullscreen mode. Escape key should exit fullscreen if active.
 7. Keep the code clean: WindowController should own window frame/fullscreen state.
 8. SwiftUI should only send intent/events upward, not directly mutate AppKit window geometry if avoidable.
 9. Do not break dragging/resizing in normal mode.
-10. Return the full modified files.
+
+Output policy:
+- Do not dump full source files into the TUI.
+- Edit files directly.
+- After editing, summarize:
+  1. files changed
+  2. behavior implemented
+  3. commands to build/test
+  4. any known limitations
