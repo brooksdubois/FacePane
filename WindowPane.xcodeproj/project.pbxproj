@@ -6,8 +6,25 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		11F99DCF2FDE041400ADE55D /* WindowPaneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DCE2FDE041400ADE55D /* WindowPaneApp.swift */; };
+		11F99DDF2FDE05D100ADE55D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DDE2FDE05CC00ADE55D /* AppDelegate.swift */; };
+		11F99DE52FDE07AE00ADE55D /* WindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DE02FDE05F400ADE55D /* WindowController.swift */; };
+		11F99DE62FDE07D500ADE55D /* OverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DE12FDE060C00ADE55D /* OverlayWindow.swift */; };
+		11F99DE72FDE07E000ADE55D /* CameraPermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DE32FDE063600ADE55D /* CameraPermissionService.swift */; };
+		11F99DE82FDE07E800ADE55D /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DE22FDE062500ADE55D /* CameraPreviewView.swift */; };
+		11F99DE92FDE07ED00ADE55D /* OverlayRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DE42FDE064A00ADE55D /* OverlayRootView.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		11F99DCB2FDE041400ADE55D /* WindowPane.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WindowPane.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		11F99DCE2FDE041400ADE55D /* WindowPaneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPaneApp.swift; sourceTree = "<group>"; };
+		11F99DDE2FDE05CC00ADE55D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		11F99DE02FDE05F400ADE55D /* WindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowController.swift; sourceTree = "<group>"; };
+		11F99DE12FDE060C00ADE55D /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
+		11F99DE22FDE062500ADE55D /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
+		11F99DE32FDE063600ADE55D /* CameraPermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPermissionService.swift; sourceTree = "<group>"; };
+		11F99DE42FDE064A00ADE55D /* OverlayRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayRootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +50,11 @@
 			isa = PBXGroup;
 			children = (
 				11F99DCD2FDE041400ADE55D /* WindowPane */,
+				11F99DD92FDE056900ADE55D /* App */,
+				11F99DDB2FDE058900ADE55D /* Window */,
+				11F99DDC2FDE059300ADE55D /* Camera */,
+				11F99DDD2FDE05A500ADE55D /* Features */,
+				11F99DDA2FDE057200ADE55D /* UI */,
 				11F99DCC2FDE041400ADE55D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +65,48 @@
 				11F99DCB2FDE041400ADE55D /* WindowPane.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		11F99DD92FDE056900ADE55D /* App */ = {
+			isa = PBXGroup;
+			children = (
+				11F99DDE2FDE05CC00ADE55D /* AppDelegate.swift */,
+				11F99DCE2FDE041400ADE55D /* WindowPaneApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		11F99DDA2FDE057200ADE55D /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				11F99DE42FDE064A00ADE55D /* OverlayRootView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		11F99DDB2FDE058900ADE55D /* Window */ = {
+			isa = PBXGroup;
+			children = (
+				11F99DE12FDE060C00ADE55D /* OverlayWindow.swift */,
+				11F99DE02FDE05F400ADE55D /* WindowController.swift */,
+			);
+			path = Window;
+			sourceTree = "<group>";
+		};
+		11F99DDC2FDE059300ADE55D /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				11F99DE32FDE063600ADE55D /* CameraPermissionService.swift */,
+				11F99DE22FDE062500ADE55D /* CameraPreviewView.swift */,
+			);
+			path = Camera;
+			sourceTree = "<group>";
+		};
+		11F99DDD2FDE05A500ADE55D /* Features */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Features;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -119,6 +183,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11F99DE62FDE07D500ADE55D /* OverlayWindow.swift in Sources */,
+				11F99DDF2FDE05D100ADE55D /* AppDelegate.swift in Sources */,
+				11F99DE92FDE07ED00ADE55D /* OverlayRootView.swift in Sources */,
+				11F99DE82FDE07E800ADE55D /* CameraPreviewView.swift in Sources */,
+				11F99DE52FDE07AE00ADE55D /* WindowController.swift in Sources */,
+				11F99DE72FDE07E000ADE55D /* CameraPermissionService.swift in Sources */,
+				11F99DCF2FDE041400ADE55D /* WindowPaneApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -256,9 +327,20 @@
 				DEVELOPMENT_TEAM = ZC8SQZ6L5B;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Windowpane uses the camera to show your face in a floating overlay during screen recordings.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -288,9 +370,20 @@
 				DEVELOPMENT_TEAM = ZC8SQZ6L5B;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Windowpane uses the camera to show your face in a floating overlay during screen recordings.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
