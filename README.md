@@ -12,7 +12,7 @@ This is intended for making screencaps with the "Screen Recording" tool apple pr
 
 ### Why I Created It
 
-I wanted something very small and simple without the entire bloat of a full-blown studio like CapCut and without the risk of my screen recordings being copied to cloud.
+I wanted something very small and simple without the entire bloat of a full-blown studio like CapCut.
 
 I also wanted a freely floating window I can use in any app that's resizable, customizable, and clean.
 
@@ -22,27 +22,28 @@ It's great for doing business and showing off your code!
 
 **Why not?** It's a simple utility that took me less than a few hours to vibe-code with Codex and ChatGPT & it works perfectly.
 
-Also, I don't have an Apple Developer subscription right this minute to deploy to the App Store... so I've decided just to share the code on my GitHub for anyone to use this as a portfolio piece.
+Also, I don't have an Apple Developer subscription right this minute to deploy to the App Store... 
 
-Hope you enjoy!
+So, I've decided just to share the code on my GitHub for anyone to use this as a portfolio piece.
+
+**Hope you enjoy!**
 
 ## How to Run
 
-This is an XCode project. You can simply clone the repo and open it in XCode and click "Run".
+This is an XCode project. Install XCode, then you can simply clone the repo and open it in XCode and click "Run".
 
 ### To Compile it as an App for your Applications Folder
 
-1. Set build destination to your Mac. In Xcode’s top toolbar, make sure the run destination says something like: "My Mac" (not iPhone or simulator)
+1. Set build destination to your Mac
+  - In Xcode’s top toolbar, make sure the run destination says something like: "My Mac" (not iPhone or simulator)
 
-2. Set signing for local use. You do not need paid Apple Developer Program for this.
-
+3. Set signing for local use. You do not need paid Apple Developer Program for this.
  - Click the project in the left sidebar:
    - WindowPane project → WindowPane target → Signing & Capabilities
    - Signing Certificate: Sign to Run Locally
  - Or leave automatic signing enabled with your personal Apple ID team.
 
 3. Build Release mode
-
   - Product → Scheme → Edit Scheme...
   - Select Run on the left.
   - Set: Build Configuration: Release
@@ -50,7 +51,6 @@ This is an XCode project. You can simply clone the repo and open it in XCode and
   - Then build: Product → Build (or: Cmd + B)
 
 4. Find the built app
-
   - In Xcode’s left sidebar, scroll to: Products
   - You should see: WindowPane.app
   - Right-click it: Show in Finder
@@ -60,4 +60,4 @@ This is an XCode project. You can simply clone the repo and open it in XCode and
 
 Now you can open it like a normal app!
 
-#### This App Comes with No Guarantees, Warrantiees, or other Expectations... The Code is Free For Anyone to Copy & Use!
+#### This App Comes with No Guarantees, Warrantees, or Other Expectations... The Code is Free For Anyone to Copy & Use!
