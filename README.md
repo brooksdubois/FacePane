@@ -4,9 +4,9 @@
 
 ## What It Does
 
-<img width="1470" height="956" alt="Screenshot 2026-06-13 at 9 42 24 PM" src="https://github.com/user-attachments/assets/3e1e0d41-1588-4efd-b52d-8597e125f338" />
-
 WindowPane gives you a small, floating window with your camera feed on your current screen!
+
+<img width="1470" height="956" alt="Screenshot 2026-06-13 at 9 42 24 PM" src="https://github.com/user-attachments/assets/3e1e0d41-1588-4efd-b52d-8597e125f338" />
 
 This is intended for making screencaps with the "Screen Recording" tool apple provides, or for Face Time/Zoom/Teams/Slack/Discord calls where you want to share your screen but still keep your face visible.
 
