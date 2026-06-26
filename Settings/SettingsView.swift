@@ -7,6 +7,11 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            Text("FacePane")
+                .font(.title2.weight(.semibold))
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 6)
+
             SettingsSection("General", systemImage: "slider.horizontal.3") {
                 Toggle("Show on all Spaces", isOn: $settingsStore.showOnAllSpaces)
                 Toggle("Remember last window position", isOn: $settingsStore.rememberWindowPosition)
@@ -381,7 +386,7 @@ private struct SettingsWindowConfigurator: NSViewRepresentable {
             return
         }
 
-        window.title = "WindowPane Settings"
+        window.title = "FacePane"
         window.titleVisibility = .visible
         window.toolbar = nil
         window.toolbarStyle = .automatic
