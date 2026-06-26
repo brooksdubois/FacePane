@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		117933C72FEEF8C800CA2933 /* FacePane.icon in Resources */ = {isa = PBXBuildFile; fileRef = 117933C62FEEF8C800CA2933 /* FacePane.icon */; };
-		117933C92FEEFB9B00CA2933 /* PrivacyInfo.xcprivacy in Sources */ = {isa = PBXBuildFile; fileRef = 117933C82FEEFB8F00CA2933 /* PrivacyInfo.xcprivacy */; };
+		11B643762FEF002600B49D60 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 117933C82FEEFB8F00CA2933 /* PrivacyInfo.xcprivacy */; };
 		11F99DCF2FDE041400ADE55D /* FacePaneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DCE2FDE041400ADE55D /* FacePaneApp.swift */; };
 		11F99DDF2FDE05D100ADE55D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DDE2FDE05CC00ADE55D /* AppDelegate.swift */; };
 		11F99DE52FDE07AE00ADE55D /* WindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DE02FDE05F400ADE55D /* WindowController.swift */; };
@@ -185,6 +185,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11B643762FEF002600B49D60 /* PrivacyInfo.xcprivacy in Resources */,
 				117933C72FEEF8C800CA2933 /* FacePane.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -198,7 +199,6 @@
 			files = (
 				11F99DE62FDE07D500ADE55D /* OverlayWindow.swift in Sources */,
 				11F99DDF2FDE05D100ADE55D /* AppDelegate.swift in Sources */,
-				117933C92FEEFB9B00CA2933 /* PrivacyInfo.xcprivacy in Sources */,
 				11F99DE92FDE07ED00ADE55D /* OverlayRootView.swift in Sources */,
 				11F99DF02FDE090000ADE55D /* SettingsStore.swift in Sources */,
 				11F99DE82FDE07E800ADE55D /* CameraPreviewView.swift in Sources */,
