@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		117933C72FEEF8C800CA2933 /* FacePane.icon in Resources */ = {isa = PBXBuildFile; fileRef = 117933C62FEEF8C800CA2933 /* FacePane.icon */; };
 		11B643762FEF002600B49D60 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 117933C82FEEFB8F00CA2933 /* PrivacyInfo.xcprivacy */; };
-		11B643912FEF1DBA00B49D60 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 11B643902FEF1DBA00B49D60 /* Info.plist */; };
 		11F99DCF2FDE041400ADE55D /* FacePaneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DCE2FDE041400ADE55D /* FacePaneApp.swift */; };
 		11F99DDF2FDE05D100ADE55D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DDE2FDE05CC00ADE55D /* AppDelegate.swift */; };
 		11F99DE52FDE07AE00ADE55D /* WindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F99DE02FDE05F400ADE55D /* WindowController.swift */; };
@@ -24,7 +23,6 @@
 /* Begin PBXFileReference section */
 		117933C62FEEF8C800CA2933 /* FacePane.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = FacePane.icon; sourceTree = "<group>"; };
 		117933C82FEEFB8F00CA2933 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		11B643902FEF1DBA00B49D60 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		11F99DCB2FDE041400ADE55D /* FacePane.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FacePane.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		11F99DCE2FDE041400ADE55D /* FacePaneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacePaneApp.swift; sourceTree = "<group>"; };
 		11F99DDE2FDE05CC00ADE55D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -59,7 +57,6 @@
 		11F99DC22FDE041400ADE55D = {
 			isa = PBXGroup;
 			children = (
-				11B643902FEF1DBA00B49D60 /* Info.plist */,
 				117933C82FEEFB8F00CA2933 /* PrivacyInfo.xcprivacy */,
 				11F99DCD2FDE041400ADE55D /* FacePane */,
 				11F99DD92FDE056900ADE55D /* App */,
@@ -189,7 +186,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				11B643762FEF002600B49D60 /* PrivacyInfo.xcprivacy in Resources */,
-				11B643912FEF1DBA00B49D60 /* Info.plist in Resources */,
 				117933C72FEEF8C800CA2933 /* FacePane.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
