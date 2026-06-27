@@ -27,9 +27,10 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Rounded corner radius")
+                            .foregroundStyle(settingsStore.windowShape == .circle ? .tertiary : .primary)
                         Spacer()
                         Text("\(Int(settingsStore.roundedCornerRadius)) px")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(settingsStore.windowShape == .circle ? .tertiary : .secondary)
                     }
 
                     Slider(
