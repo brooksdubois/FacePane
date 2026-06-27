@@ -76,6 +76,107 @@ struct WindowShapeGeometry: Equatable {
     }
 }
 
+struct CropGeometry: Equatable {
+    let cropPercent: Double
+    let cropCenterX: Double
+    let cropCenterY: Double
+
+    var cropFraction: CGFloat {
+        CGFloat(max(25, min(100, cropPercent)) / 100)
+    }
+
+    var cropScale: CGFloat {
+        max(1, 1 / cropFraction)
+    }
+
+    var safeCropCenterX: Double {
+        Self.clamp(cropCenterX)
+    }
+
+    var safeCropCenterY: Double {
+        Self.clamp(cropCenterY)
+    }
+
+    var isCropLocked: Bool {
+        cropPercent >= 100
+    }
+
+    func cropRect(in bounds: CGRect) -> CGRect {
+        let cropSize = CGSize(
+            width: bounds.width * cropFraction,
+            height: bounds.height * cropFraction
+        )
+        let center = centerPoint(in: bounds)
+
+        return CGRect(
+            x: center.x - (cropSize.width / 2),
+            y: center.y - (cropSize.height / 2),
+            width: cropSize.width,
+            height: cropSize.height
+        )
+    }
+
+    func centerPoint(in bounds: CGRect) -> CGPoint {
+        let cropWidth = bounds.width * cropFraction
+        let cropHeight = bounds.height * cropFraction
+        let travelX = max(0, (bounds.width - cropWidth) / 2)
+        let travelY = max(0, (bounds.height - cropHeight) / 2)
+
+        return CGPoint(
+            x: bounds.midX + (CGFloat(safeCropCenterX) * travelX),
+            y: bounds.midY - (CGFloat(safeCropCenterY) * travelY)
+        )
+    }
+
+    func offsets(for location: CGPoint, in bounds: CGRect) -> (x: Double, y: Double) {
+        guard !isCropLocked else {
+            return (0, 0)
+        }
+
+        let cropWidth = bounds.width * cropFraction
+        let cropHeight = bounds.height * cropFraction
+        let travelX = max(0, (bounds.width - cropWidth) / 2)
+        let travelY = max(0, (bounds.height - cropHeight) / 2)
+
+        return (
+            x: travelX == 0 ? 0 : Self.clamp(Double((location.x - bounds.midX) / travelX)),
+            y: travelY == 0 ? 0 : Self.clamp(Double((bounds.midY - location.y) / travelY))
+        )
+    }
+
+    func contentOffset(in size: CGSize) -> CGSize {
+        CGSize(
+            width: CGFloat(safeCropCenterX) * (size.width * (cropScale - 1) / 2),
+            height: CGFloat(safeCropCenterY) * (size.height * (cropScale - 1) / 2)
+        )
+    }
+
+    private static func clamp(_ value: Double) -> Double {
+        max(-1, min(1, value))
+    }
+}
+
+@MainActor
+final class OverlayPaneGeometryState: ObservableObject {
+    @Published private(set) var paneSize = CGSize(width: 420, height: 300)
+
+    func updatePaneSize(_ size: CGSize) {
+        let normalizedSize = CGSize(
+            width: max(1, size.width),
+            height: max(1, size.height)
+        )
+
+        guard
+            abs(paneSize.width - normalizedSize.width) > 0.5 ||
+            abs(paneSize.height - normalizedSize.height) > 0.5
+        else {
+            return
+        }
+
+        paneSize = normalizedSize
+    }
+}
+
 @MainActor
 final class SettingsStore: ObservableObject {
     @Published var showOnAllSpaces: Bool {

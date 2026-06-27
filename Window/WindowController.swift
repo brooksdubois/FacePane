@@ -14,6 +14,7 @@ final class WindowController: NSWindowController {
     }
 
     private let settingsStore: SettingsStore
+    private let overlayPaneGeometry: OverlayPaneGeometryState
     private let cameraService: CameraService
     private let presentationState: OverlayPresentationState
     private let resizableContentView: ResizableOverlayContentView
@@ -25,10 +26,12 @@ final class WindowController: NSWindowController {
 
     init(
         settingsStore: SettingsStore,
+        overlayPaneGeometry: OverlayPaneGeometryState,
         cameraService: CameraService,
         onOpenSettings: @escaping () -> Void
     ) {
         self.settingsStore = settingsStore
+        self.overlayPaneGeometry = overlayPaneGeometry
         self.cameraService = cameraService
         self.onOpenSettings = onOpenSettings
 
@@ -73,6 +76,7 @@ final class WindowController: NSWindowController {
 
         window.isMovableByWindowBackground = true
         window.minSize = Metrics.minimumWindowSize
+        overlayPaneGeometry.updatePaneSize(window.frame.size)
 
         super.init(window: window)
 
@@ -116,6 +120,7 @@ final class WindowController: NSWindowController {
             level: isOverlayFullscreen ? .screenSaver : OverlayWindowState.level,
             isMovable: !isOverlayFullscreen
         )
+        publishOverlayPaneSize()
         window?.orderFrontRegardless()
     }
 
@@ -203,6 +208,7 @@ final class WindowController: NSWindowController {
         restoreFloatingOverlayBehavior(level: .screenSaver, isMovable: false)
         window.hasShadow = false
         window.setFrame(targetFullscreenFrame(for: window), display: true, animate: false)
+        publishOverlayPaneSize()
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
     }
@@ -228,6 +234,7 @@ final class WindowController: NSWindowController {
             window.setFrame(frameToRestore, display: true, animate: false)
         }
 
+        publishOverlayPaneSize()
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
         return true
@@ -268,6 +275,14 @@ final class WindowController: NSWindowController {
         settingsStore.saveWindowFrame(window.frame)
     }
 
+    private func publishOverlayPaneSize() {
+        guard let window else {
+            return
+        }
+
+        overlayPaneGeometry.updatePaneSize(window.frame.size)
+    }
+
     private static func collectionBehavior(showOnAllSpaces: Bool) -> NSWindow.CollectionBehavior {
         var behavior = OverlayWindowState.baseCollectionBehavior
 
@@ -285,6 +300,7 @@ extension WindowController: NSWindowDelegate {
     }
 
     func windowDidResize(_ notification: Notification) {
+        publishOverlayPaneSize()
         saveWindowFrameIfNeeded()
     }
 

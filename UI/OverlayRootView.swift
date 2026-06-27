@@ -122,6 +122,13 @@ private struct CameraContentView: View {
                 )
             case .ready:
                 GeometryReader { geometry in
+                    let cropGeometry = CropGeometry(
+                        cropPercent: cropPercent,
+                        cropCenterX: cropCenterX,
+                        cropCenterY: cropCenterY
+                    )
+                    let contentOffset = cropGeometry.contentOffset(in: geometry.size)
+
                     CameraPreviewView(
                         session: cameraService.session,
                         isMirrored: isMirrored
@@ -129,14 +136,14 @@ private struct CameraContentView: View {
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .scaleEffect(
                         CGSize(
-                            width: CGFloat(cropScale),
-                            height: CGFloat(cropScale)
+                            width: cropGeometry.cropScale,
+                            height: cropGeometry.cropScale
                         ),
                         anchor: .center
                     )
                     .offset(
-                        x: CGFloat(safeCropCenterX) * (geometry.size.width * CGFloat(cropScale - 1) / 2),
-                        y: CGFloat(safeCropCenterY) * (geometry.size.height * CGFloat(cropScale - 1) / 2)
+                        x: contentOffset.width,
+                        y: contentOffset.height
                     )
                 }
             case .permissionDenied:
@@ -159,18 +166,6 @@ private struct CameraContentView: View {
                 )
             }
         }
-    }
-
-    private var cropScale: Double {
-        max(1, 100 / max(25, cropPercent))
-    }
-
-    private var safeCropCenterX: Double {
-        max(-1, min(1, cropCenterX))
-    }
-
-    private var safeCropCenterY: Double {
-        max(-1, min(1, cropCenterY))
     }
 }
 

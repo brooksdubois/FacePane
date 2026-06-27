@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settingsStore = SettingsStore()
+    let overlayPaneGeometry = OverlayPaneGeometryState()
     private var windowController: WindowController?
     lazy var cameraService = CameraService(settingsStore: settingsStore)
     private var statusItem: NSStatusItem?
@@ -15,6 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let controller = WindowController(
             settingsStore: settingsStore,
+            overlayPaneGeometry: overlayPaneGeometry,
             cameraService: cameraService,
             onOpenSettings: { [weak self] in
                 self?.openSettings()

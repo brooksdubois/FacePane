@@ -8,6 +8,7 @@ struct FacePaneApp: App {
         Settings {
             SettingsView(
                 settingsStore: appDelegate.settingsStore,
+                overlayPaneGeometry: appDelegate.overlayPaneGeometry,
                 cameraService: appDelegate.cameraService
             )
         }
