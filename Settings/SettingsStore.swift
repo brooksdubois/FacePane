@@ -49,6 +49,33 @@ enum WindowShape: String, CaseIterable, Identifiable {
     }
 }
 
+struct WindowShapeGeometry: Equatable {
+    let windowShape: WindowShape
+    let cornerRadius: CGFloat
+
+    init(windowShape: WindowShape, cornerRadius: CGFloat) {
+        self.windowShape = windowShape
+        self.cornerRadius = max(0, cornerRadius)
+    }
+
+    func circleRect(in bounds: NSRect) -> NSRect {
+        let diameter = min(bounds.width, bounds.height)
+
+        return NSRect(
+            x: bounds.minX + max(0, (bounds.width - diameter) / 2),
+            y: bounds.minY + max(0, (bounds.height - diameter) / 2),
+            width: diameter,
+            height: diameter
+        )
+    }
+
+    // Rounded panes use ordinary circular radius arcs. Keeping that contract
+    // here lets the visible shape and AppKit resize hit geometry stay aligned.
+    func roundedCornerRadius(in bounds: NSRect) -> CGFloat {
+        min(cornerRadius, bounds.width / 2, bounds.height / 2)
+    }
+}
+
 @MainActor
 final class SettingsStore: ObservableObject {
     @Published var showOnAllSpaces: Bool {
@@ -101,6 +128,13 @@ final class SettingsStore: ObservableObject {
 
     @Published var escapeExitsFullscreen: Bool {
         didSet { defaults.set(escapeExitsFullscreen, forKey: Keys.escapeExitsFullscreen) }
+    }
+
+    var windowShapeGeometry: WindowShapeGeometry {
+        WindowShapeGeometry(
+            windowShape: windowShape,
+            cornerRadius: CGFloat(roundedCornerRadius)
+        )
     }
 
     private let defaults: UserDefaults

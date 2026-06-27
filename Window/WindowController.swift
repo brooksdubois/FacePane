@@ -305,17 +305,22 @@ private extension NSRect {
 
 private final class ResizableOverlayContentView: NSView {
     private enum Metrics {
-        static let edgeThickness: CGFloat = 12
+        static let resizeHitThickness: CGFloat = 24
     }
 
     private let contentView: NSView
+    private let resizeHandle: ShapeAwareResizeHandleView
     var cornerRadius: CGFloat {
         didSet {
+            resizeHandle.shapeGeometry = shapeGeometry
+            invalidateResizeCursorRects()
             needsLayout = true
         }
     }
     var windowShape: WindowShape {
         didSet {
+            resizeHandle.shapeGeometry = shapeGeometry
+            invalidateResizeCursorRects()
             needsLayout = true
         }
     }
@@ -325,42 +330,33 @@ private final class ResizableOverlayContentView: NSView {
                 return
             }
 
-            resizeHandles.forEach { $0.isHidden = !isResizeChromeEnabled }
+            resizeHandle.isHidden = !isResizeChromeEnabled
+            invalidateResizeCursorRects()
             needsLayout = true
         }
     }
-    private let topHandle = ResizeHandleView(edges: [.top])
-    private let bottomHandle = ResizeHandleView(edges: [.bottom])
-    private let leftHandle = ResizeHandleView(edges: [.left])
-    private let rightHandle = ResizeHandleView(edges: [.right])
-    private let topLeftHandle = ResizeHandleView(edges: [.top, .left])
-    private let topRightHandle = ResizeHandleView(edges: [.top, .right])
-    private let bottomLeftHandle = ResizeHandleView(edges: [.bottom, .left])
-    private let bottomRightHandle = ResizeHandleView(edges: [.bottom, .right])
-    private lazy var resizeHandles = [
-        topHandle,
-        bottomHandle,
-        leftHandle,
-        rightHandle,
-        topLeftHandle,
-        topRightHandle,
-        bottomLeftHandle,
-        bottomRightHandle
-    ]
 
     init(contentView: NSView, cornerRadius: CGFloat) {
         self.contentView = contentView
         self.cornerRadius = cornerRadius
         self.windowShape = .rounded
+        self.resizeHandle = ShapeAwareResizeHandleView(
+            shapeGeometry: WindowShapeGeometry(
+                windowShape: .rounded,
+                cornerRadius: cornerRadius
+            ),
+            hitThickness: Metrics.resizeHitThickness
+        )
 
         super.init(frame: .zero)
 
         wantsLayer = false
         addSubview(contentView)
-
-        resizeHandles.forEach { handle in
-            addSubview(handle)
-        }
+        // The interaction overlay intentionally covers the whole content view:
+        // edge hits resize, while non-edge drags move the borderless window.
+        // Keeping both paths here avoids SwiftUI/AppKit hit-test drift between
+        // the visible frame, resize affordance, and fallback drag behavior.
+        addSubview(resizeHandle)
     }
 
     convenience init(
@@ -370,17 +366,16 @@ private final class ResizableOverlayContentView: NSView {
     ) {
         self.init(contentView: contentView, cornerRadius: cornerRadius)
         self.windowShape = windowShape
+        resizeHandle.shapeGeometry = shapeGeometry
 
-        resizeHandles.forEach { handle in
-            handle.resizeCalculator = { [weak self] initialFrame, edges, deltaX, deltaY, minSize in
-                self?.nextFrame(
-                    from: initialFrame,
-                    edges: edges,
-                    deltaX: deltaX,
-                    deltaY: deltaY,
-                    minSize: minSize
-                ) ?? initialFrame
-            }
+        resizeHandle.resizeCalculator = { [weak self] initialFrame, edges, deltaX, deltaY, minSize in
+            self?.nextFrame(
+                from: initialFrame,
+                edges: edges,
+                deltaX: deltaX,
+                deltaY: deltaY,
+                minSize: minSize
+            ) ?? initialFrame
         }
     }
 
@@ -397,152 +392,23 @@ private final class ResizableOverlayContentView: NSView {
         super.layout()
 
         contentView.frame = bounds
+        resizeHandle.frame = isResizeChromeEnabled ? bounds : .zero
+        invalidateResizeCursorRects()
+    }
 
-        guard isResizeChromeEnabled else {
-            resizeHandles.forEach { $0.frame = .zero }
+    private var shapeGeometry: WindowShapeGeometry {
+        WindowShapeGeometry(
+            windowShape: windowShape,
+            cornerRadius: cornerRadius
+        )
+    }
+
+    private func invalidateResizeCursorRects() {
+        guard let window else {
             return
         }
 
-        let edgeThickness = Metrics.edgeThickness
-        let geometry = handleGeometry(for: bounds, edgeThickness: edgeThickness)
-
-        topLeftHandle.frame = geometry.topLeft
-        topRightHandle.frame = geometry.topRight
-        bottomLeftHandle.frame = geometry.bottomLeft
-        bottomRightHandle.frame = geometry.bottomRight
-
-        topHandle.frame = geometry.top
-        bottomHandle.frame = geometry.bottom
-        leftHandle.frame = geometry.left
-        rightHandle.frame = geometry.right
-    }
-
-    private func handleGeometry(for bounds: NSRect, edgeThickness: CGFloat) -> HandleGeometry {
-        switch windowShape {
-        case .rounded:
-            let cornerLength = min(cornerRadius, bounds.width / 2, bounds.height / 2)
-            let horizontalEdgeWidth = max(0, bounds.width - (cornerLength * 2))
-            let verticalEdgeHeight = max(0, bounds.height - (cornerLength * 2))
-
-            return HandleGeometry(
-                topLeft: NSRect(
-                    x: 0,
-                    y: bounds.height - cornerLength,
-                    width: cornerLength,
-                    height: cornerLength
-                ),
-                topRight: NSRect(
-                    x: bounds.width - cornerLength,
-                    y: bounds.height - cornerLength,
-                    width: cornerLength,
-                    height: cornerLength
-                ),
-                bottomLeft: NSRect(
-                    x: 0,
-                    y: 0,
-                    width: cornerLength,
-                    height: cornerLength
-                ),
-                bottomRight: NSRect(
-                    x: bounds.width - cornerLength,
-                    y: 0,
-                    width: cornerLength,
-                    height: cornerLength
-                ),
-                top: NSRect(
-                    x: cornerLength,
-                    y: bounds.height - edgeThickness,
-                    width: horizontalEdgeWidth,
-                    height: edgeThickness
-                ),
-                bottom: NSRect(
-                    x: cornerLength,
-                    y: 0,
-                    width: horizontalEdgeWidth,
-                    height: edgeThickness
-                ),
-                left: NSRect(
-                    x: 0,
-                    y: cornerLength,
-                    width: edgeThickness,
-                    height: verticalEdgeHeight
-                ),
-                right: NSRect(
-                    x: bounds.width - edgeThickness,
-                    y: cornerLength,
-                    width: edgeThickness,
-                    height: verticalEdgeHeight
-                )
-            )
-
-        case .circle:
-            let diameter = min(bounds.width, bounds.height)
-            let circleInsetX = max(0, (bounds.width - diameter) / 2)
-            let circleInsetY = max(0, (bounds.height - diameter) / 2)
-            let circleRect = NSRect(
-                x: circleInsetX,
-                y: circleInsetY,
-                width: diameter,
-                height: diameter
-            )
-            let cornerLength = min(40, max(12, diameter / 6))
-            let circleCenter = CGPoint(
-                x: circleRect.midX,
-                y: circleRect.midY
-            )
-            let diagonalOffset = (diameter / 2) / sqrt(2)
-
-            return HandleGeometry(
-                topLeft: NSRect(
-                    x: circleCenter.x - diagonalOffset - (cornerLength / 2),
-                    y: circleCenter.y + diagonalOffset - (cornerLength / 2),
-                    width: cornerLength,
-                    height: cornerLength
-                ),
-                topRight: NSRect(
-                    x: circleCenter.x + diagonalOffset - (cornerLength / 2),
-                    y: circleCenter.y + diagonalOffset - (cornerLength / 2),
-                    width: cornerLength,
-                    height: cornerLength
-                ),
-                bottomLeft: NSRect(
-                    x: circleCenter.x - diagonalOffset - (cornerLength / 2),
-                    y: circleCenter.y - diagonalOffset - (cornerLength / 2),
-                    width: cornerLength,
-                    height: cornerLength
-                ),
-                bottomRight: NSRect(
-                    x: circleCenter.x + diagonalOffset - (cornerLength / 2),
-                    y: circleCenter.y - diagonalOffset - (cornerLength / 2),
-                    width: cornerLength,
-                    height: cornerLength
-                ),
-                top: NSRect(
-                    x: circleRect.minX,
-                    y: circleRect.maxY - edgeThickness,
-                    width: circleRect.width,
-                    height: edgeThickness
-                ),
-                bottom: NSRect(
-                    x: circleRect.minX,
-                    y: circleRect.minY,
-                    width: circleRect.width,
-                    height: edgeThickness
-                ),
-                left: NSRect(
-                    x: circleRect.minX,
-                    y: circleRect.minY,
-                    width: edgeThickness,
-                    height: circleRect.height
-                ),
-                right: NSRect(
-                    x: circleRect.maxX - edgeThickness,
-                    y: circleRect.minY,
-                    width: edgeThickness,
-                    height: circleRect.height
-                )
-            )
-        }
+        window.invalidateCursorRects(for: resizeHandle)
     }
 
     private func nextFrame(
@@ -552,7 +418,7 @@ private final class ResizableOverlayContentView: NSView {
         deltaY: CGFloat,
         minSize: NSSize
     ) -> NSRect {
-        switch windowShape {
+        switch shapeGeometry.windowShape {
         case .rounded:
             return roundedNextFrame(
                 from: initialWindowFrame,
@@ -638,39 +504,51 @@ private final class ResizableOverlayContentView: NSView {
             return initialWindowFrame
         }
 
-        var nextOrigin = initialWindowFrame.origin
-        var nextFrame = NSRect(
+        let currentCircleFrame = NSRect(
+            x: initialWindowFrame.minX + max(0, (initialWindowFrame.width - currentSide) / 2),
+            y: initialWindowFrame.minY + max(0, (initialWindowFrame.height - currentSide) / 2),
+            width: currentSide,
+            height: currentSide
+        )
+
+        let nextOrigin: NSPoint
+        if edges == .top {
+            nextOrigin = NSPoint(
+                x: currentCircleFrame.midX - (requestedSide / 2),
+                y: currentCircleFrame.minY
+            )
+        } else if edges == .bottom {
+            nextOrigin = NSPoint(
+                x: currentCircleFrame.midX - (requestedSide / 2),
+                y: currentCircleFrame.maxY - requestedSide
+            )
+        } else if edges == .left {
+            nextOrigin = NSPoint(
+                x: currentCircleFrame.maxX - requestedSide,
+                y: currentCircleFrame.midY - (requestedSide / 2)
+            )
+        } else if edges == .right {
+            nextOrigin = NSPoint(
+                x: currentCircleFrame.minX,
+                y: currentCircleFrame.midY - (requestedSide / 2)
+            )
+        } else {
+            nextOrigin = NSPoint(
+                x: edges.contains(.left) ? currentCircleFrame.maxX - requestedSide : currentCircleFrame.minX,
+                y: edges.contains(.bottom) ? currentCircleFrame.maxY - requestedSide : currentCircleFrame.minY
+            )
+        }
+
+        return NSRect(
             x: nextOrigin.x,
             y: nextOrigin.y,
             width: requestedSide,
             height: requestedSide
         )
-
-        if edges.contains(.left) {
-            nextOrigin.x += currentSide - requestedSide
-        }
-
-        if edges.contains(.bottom) {
-            nextOrigin.y += currentSide - requestedSide
-        }
-
-        nextFrame.origin = nextOrigin
-        return nextFrame
     }
 }
 
-private struct HandleGeometry {
-    let topLeft: NSRect
-    let topRight: NSRect
-    let bottomLeft: NSRect
-    let bottomRight: NSRect
-    let top: NSRect
-    let bottom: NSRect
-    let left: NSRect
-    let right: NSRect
-}
-
-private struct ResizeEdges: OptionSet {
+private struct ResizeEdges: OptionSet, Equatable {
     let rawValue: Int
 
     static let top = ResizeEdges(rawValue: 1 << 0)
@@ -679,8 +557,17 @@ private struct ResizeEdges: OptionSet {
     static let right = ResizeEdges(rawValue: 1 << 3)
 }
 
-private final class ResizeHandleView: NSView {
-    private let edges: ResizeEdges
+/// Invisible resize/move chrome that consumes the same `WindowShapeGeometry`
+/// contract used by `OverlayRootView` for clipping and strokes. The overlay
+/// intentionally covers the full pane: edge hits resize, non-edge drags move
+/// the borderless window, and non-edge double-clicks keep the fullscreen toggle.
+private final class ShapeAwareResizeHandleView: NSView {
+    private enum Metrics {
+        static let flatCornerRadiusThreshold: CGFloat = 1
+    }
+
+    var shapeGeometry: WindowShapeGeometry
+    let hitThickness: CGFloat
     var resizeCalculator: (NSRect, ResizeEdges, CGFloat, CGFloat, NSSize) -> NSRect = { initialFrame, _edges, _deltaX, _deltaY, minSize in
         return NSRect(
             origin: initialFrame.origin,
@@ -690,11 +577,15 @@ private final class ResizeHandleView: NSView {
             )
         )
     }
+    private var activeEdges: ResizeEdges = []
+    private var isDraggingWindow = false
     private var initialWindowFrame: NSRect = .zero
     private var initialMouseLocation: NSPoint = .zero
+    private var resizeTrackingArea: NSTrackingArea?
 
-    init(edges: ResizeEdges) {
-        self.edges = edges
+    init(shapeGeometry: WindowShapeGeometry, hitThickness: CGFloat) {
+        self.shapeGeometry = shapeGeometry
+        self.hitThickness = hitThickness
 
         super.init(frame: .zero)
     }
@@ -712,8 +603,37 @@ private final class ResizeHandleView: NSView {
         false
     }
 
-    override func resetCursorRects() {
-        addCursorRect(bounds, cursor: cursor)
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        guard !isHidden, alphaValue > 0, bounds.contains(point) else {
+            return nil
+        }
+
+        return self
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+
+        if let resizeTrackingArea {
+            removeTrackingArea(resizeTrackingArea)
+        }
+
+        let trackingArea = NSTrackingArea(
+            rect: bounds,
+            options: [.activeAlways, .cursorUpdate, .mouseMoved, .enabledDuringMouseDrag],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(trackingArea)
+        resizeTrackingArea = trackingArea
+    }
+
+    override func cursorUpdate(with event: NSEvent) {
+        updateCursor(with: event)
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        updateCursor(with: event)
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -721,8 +641,16 @@ private final class ResizeHandleView: NSView {
             return
         }
 
+        let point = convert(event.locationInWindow, from: nil)
+        activeEdges = resizeEdges(at: point) ?? []
+        isDraggingWindow = activeEdges.isEmpty && window.isMovableByWindowBackground
         initialWindowFrame = window.frame
         initialMouseLocation = NSEvent.mouseLocation
+
+        if event.clickCount == 2, activeEdges.isEmpty {
+            isDraggingWindow = false
+            (window as? OverlayWindow)?.onToggleOverlayFullscreen?()
+        }
     }
 
     override func mouseDragged(with event: NSEvent) {
@@ -733,16 +661,180 @@ private final class ResizeHandleView: NSView {
         let currentMouseLocation = NSEvent.mouseLocation
         let deltaX = currentMouseLocation.x - initialMouseLocation.x
         let deltaY = currentMouseLocation.y - initialMouseLocation.y
+
+        if isDraggingWindow {
+            var nextFrame = initialWindowFrame
+            nextFrame.origin.x += deltaX
+            nextFrame.origin.y += deltaY
+            window.setFrame(nextFrame, display: true)
+            return
+        }
+
+        guard !activeEdges.isEmpty else {
+            return
+        }
+
         let minSize = window.minSize
-        let nextFrame = resizeCalculator(initialWindowFrame, edges, deltaX, deltaY, minSize)
+        let nextFrame = resizeCalculator(initialWindowFrame, activeEdges, deltaX, deltaY, minSize)
 
         window.setFrame(nextFrame, display: true)
     }
 
-    private var cursor: NSCursor {
+    override func mouseUp(with event: NSEvent) {
+        activeEdges = []
+        isDraggingWindow = false
+    }
+
+    private func updateCursor(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        if let edges = resizeEdges(at: point) {
+            Self.cursor(for: edges).set()
+        } else {
+            NSCursor.arrow.set()
+        }
+    }
+
+    private func resizeEdges(at point: NSPoint) -> ResizeEdges? {
+        guard bounds.contains(point) else {
+            return nil
+        }
+
+        switch shapeGeometry.windowShape {
+        case .circle:
+            return circularResizeEdges(at: point)
+        case .rounded:
+            return roundedResizeEdges(at: point)
+        }
+    }
+
+    private func circularResizeEdges(at point: NSPoint) -> ResizeEdges? {
+        let diameter = min(bounds.width, bounds.height)
+        guard diameter > 0 else {
+            return nil
+        }
+
+        let circleRect = shapeGeometry.circleRect(in: bounds)
+        let center = NSPoint(x: circleRect.midX, y: circleRect.midY)
+        let dx = point.x - center.x
+        let dy = point.y - center.y
+        let radius = diameter / 2
+        let distanceFromCenter = hypot(dx, dy)
+
+        guard abs(distanceFromCenter - radius) <= hitThickness else {
+            return nil
+        }
+
+        return Self.edges(forVectorX: dx, y: dy)
+    }
+
+    private func roundedResizeEdges(at point: NSPoint) -> ResizeEdges? {
+        let radius = shapeGeometry.roundedCornerRadius(in: bounds)
+
+        if radius <= Metrics.flatCornerRadiusThreshold {
+            return flatResizeEdges(at: point)
+        }
+
+        let straightEdges = straightRoundedResizeEdges(at: point, radius: radius)
+        let cornerEdges = cornerRoundedResizeEdges(at: point, radius: radius)
+        let edges = straightEdges.union(cornerEdges)
+
+        return edges.isEmpty ? nil : edges
+    }
+
+    private func flatResizeEdges(at point: NSPoint) -> ResizeEdges? {
+        var edges: ResizeEdges = []
+
+        if point.x <= bounds.minX + hitThickness {
+            edges.insert(.left)
+        }
+        if point.x >= bounds.maxX - hitThickness {
+            edges.insert(.right)
+        }
+        if point.y <= bounds.minY + hitThickness {
+            edges.insert(.bottom)
+        }
+        if point.y >= bounds.maxY - hitThickness {
+            edges.insert(.top)
+        }
+
+        return edges.isEmpty ? nil : edges
+    }
+
+    private func straightRoundedResizeEdges(at point: NSPoint, radius: CGFloat) -> ResizeEdges {
+        var edges: ResizeEdges = []
+        let horizontalRange = (bounds.minX + radius)...(bounds.maxX - radius)
+        let verticalRange = (bounds.minY + radius)...(bounds.maxY - radius)
+
+        if horizontalRange.contains(point.x) {
+            if point.y >= bounds.maxY - hitThickness {
+                edges.insert(.top)
+            }
+            if point.y <= bounds.minY + hitThickness {
+                edges.insert(.bottom)
+            }
+        }
+
+        if verticalRange.contains(point.y) {
+            if point.x <= bounds.minX + hitThickness {
+                edges.insert(.left)
+            }
+            if point.x >= bounds.maxX - hitThickness {
+                edges.insert(.right)
+            }
+        }
+
+        return edges
+    }
+
+    private func cornerRoundedResizeEdges(at point: NSPoint, radius: CGFloat) -> ResizeEdges {
+        let corners: [(center: NSPoint, edges: ResizeEdges, containsPoint: (CGFloat, CGFloat) -> Bool)] = [
+            (NSPoint(x: bounds.minX + radius, y: bounds.maxY - radius), [.top, .left], { dx, dy in dx <= 0 && dy >= 0 }),
+            (NSPoint(x: bounds.maxX - radius, y: bounds.maxY - radius), [.top, .right], { dx, dy in dx >= 0 && dy >= 0 }),
+            (NSPoint(x: bounds.minX + radius, y: bounds.minY + radius), [.bottom, .left], { dx, dy in dx <= 0 && dy <= 0 }),
+            (NSPoint(x: bounds.maxX - radius, y: bounds.minY + radius), [.bottom, .right], { dx, dy in dx >= 0 && dy <= 0 })
+        ]
+
+        for corner in corners {
+            let dx = point.x - corner.center.x
+            let dy = point.y - corner.center.y
+            let distance = hypot(dx, dy)
+
+            if corner.containsPoint(dx, dy), abs(distance - radius) <= hitThickness {
+                return corner.edges
+            }
+        }
+
+        return []
+    }
+
+    private static func edges(forVectorX x: CGFloat, y: CGFloat) -> ResizeEdges {
+        let angle = atan2(y, x)
+        let eighthTurn = CGFloat.pi / 8
+
+        switch angle {
+        case -eighthTurn...eighthTurn:
+            return [.right]
+        case eighthTurn...(3 * eighthTurn):
+            return [.top, .right]
+        case (3 * eighthTurn)...(5 * eighthTurn):
+            return [.top]
+        case (5 * eighthTurn)...(7 * eighthTurn):
+            return [.top, .left]
+        case (-3 * eighthTurn)...(-eighthTurn):
+            return [.bottom, .right]
+        case (-5 * eighthTurn)...(-3 * eighthTurn):
+            return [.bottom]
+        case (-7 * eighthTurn)...(-5 * eighthTurn):
+            return [.bottom, .left]
+        default:
+            return [.left]
+        }
+    }
+
+    private static func cursor(for edges: ResizeEdges) -> NSCursor {
         switch (edges.contains(.left) || edges.contains(.right), edges.contains(.top) || edges.contains(.bottom)) {
         case (true, true):
-            return NSCursor.frameResize(position: cursorPosition, directions: .all)
+            return NSCursor.frameResize(position: cursorPosition(for: edges), directions: .all)
         case (true, false):
             return .resizeLeftRight
         case (false, true):
@@ -752,7 +844,7 @@ private final class ResizeHandleView: NSView {
         }
     }
 
-    private var cursorPosition: NSCursor.FrameResizePosition {
+    private static func cursorPosition(for edges: ResizeEdges) -> NSCursor.FrameResizePosition {
         switch (edges.contains(.top), edges.contains(.bottom), edges.contains(.left), edges.contains(.right)) {
         case (true, false, true, false):
             return .topLeft

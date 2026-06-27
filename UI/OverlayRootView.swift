@@ -59,18 +59,16 @@ private struct WindowShapeModifier: ViewModifier {
             return AnyView(content)
         }
 
-        switch settingsStore.windowShape {
+        let geometry = settingsStore.windowShapeGeometry
+
+        switch geometry.windowShape {
         case .circle:
             return AnyView(content
                 .clipShape(Circle()))
         case .rounded:
             return AnyView(content
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)))
+                .clipShape(RoundedRectangle(cornerRadius: geometry.cornerRadius, style: .circular)))
         }
-    }
-
-    private var cornerRadius: CGFloat {
-        CGFloat(settingsStore.roundedCornerRadius)
     }
 }
 
@@ -79,7 +77,9 @@ private struct WindowPaneStroke: View {
 
     var body: some View {
         ZStack {
-            switch settingsStore.windowShape {
+            let geometry = settingsStore.windowShapeGeometry
+
+            switch geometry.windowShape {
             case .circle:
                 Circle()
                     .stroke(Color.white.opacity(0.16), lineWidth: 1)
@@ -89,20 +89,16 @@ private struct WindowPaneStroke: View {
                     .blur(radius: 0.5)
                     .offset(y: 1)
             case .rounded:
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                RoundedRectangle(cornerRadius: geometry.cornerRadius, style: .circular)
                     .stroke(Color.white.opacity(0.16), lineWidth: 1)
 
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                RoundedRectangle(cornerRadius: geometry.cornerRadius, style: .circular)
                     .stroke(Color.black.opacity(0.35), lineWidth: 2)
                     .blur(radius: 0.5)
                     .offset(y: 1)
             }
         }
         .allowsHitTesting(false)
-    }
-
-    private var cornerRadius: CGFloat {
-        CGFloat(settingsStore.roundedCornerRadius)
     }
 }
 
