@@ -242,19 +242,13 @@ private struct CropPositionSelector: View {
             GeometryReader { geometry in
                 let bounds = CGRect(origin: .zero, size: geometry.size)
                 let currentCropGeometry = cropGeometry
-                let rawCropRect = currentCropGeometry.cropRect(in: bounds)
+                let cropRect = currentCropGeometry.cropRect(in: bounds)
+                let pin = currentCropGeometry.centerPoint(in: bounds)
                 let outerRadius = outerPreviewCornerRadius(
                     in: bounds,
-                    cropRect: rawCropRect
+                    cropRect: cropRect
                 )
-                let cropRadius = previewCornerRadius(in: rawCropRect)
-                let cropRect = constrainedCropRect(
-                    rawCropRect,
-                    in: bounds,
-                    outerRadius: outerRadius,
-                    cropRadius: cropRadius
-                )
-                let pin = CGPoint(x: cropRect.midX, y: cropRect.midY)
+                let cropRadius = previewCornerRadius(in: cropRect)
                 let outerShape = CropPreviewShape(
                     windowShape: .rounded,
                     cornerRadius: outerRadius
@@ -274,14 +268,18 @@ private struct CropPositionSelector: View {
                     outerShape
                         .stroke(Color.secondary.opacity(0.35), lineWidth: 1)
 
-                    cropShape
-                        .fill(Color.accentColor.opacity(0.13))
-                        .overlay {
-                            cropShape
-                                .stroke(Color.accentColor, lineWidth: 2)
-                        }
-                        .frame(width: cropRect.width, height: cropRect.height)
-                        .position(x: cropRect.midX, y: cropRect.midY)
+                    ZStack(alignment: .topLeading) {
+                        cropShape
+                            .fill(Color.accentColor.opacity(0.13))
+                            .overlay {
+                                cropShape
+                                    .stroke(Color.accentColor, lineWidth: 2)
+                            }
+                            .frame(width: cropRect.width, height: cropRect.height)
+                            .position(x: cropRect.midX, y: cropRect.midY)
+                    }
+                    .frame(width: bounds.width, height: bounds.height)
+                    .clipShape(outerShape)
 
                     Path { path in
                         path.move(to: CGPoint(x: bounds.midX, y: 0))
@@ -379,157 +377,17 @@ private struct CropPositionSelector: View {
     }
 
     private var displayXOffset: Double {
-        displayedOffsets.x
+        isCropLocked ? 0 : xOffset
     }
 
     private var displayYOffset: Double {
-        displayedOffsets.y
-    }
-
-    private var displayedOffsets: (x: Double, y: Double) {
-        guard !isCropLocked else {
-            return (0, 0)
-        }
-
-        let bounds = CGRect(
-            origin: .zero,
-            size: Self.previewSize(
-                for: shapeGeometry,
-                paneSize: paneSize
-            )
-        )
-
-        return offsetsForConstrainedCrop(
-            cropGeometry,
-            in: bounds
-        )
+        isCropLocked ? 0 : yOffset
     }
 
     private func updateOffsets(from location: CGPoint, in bounds: CGRect) {
-        let proposedOffsets = cropGeometry.offsets(for: location, in: bounds)
-        let proposedGeometry = CropGeometry(
-            cropPercent: cropPercent,
-            cropCenterX: proposedOffsets.x,
-            cropCenterY: proposedOffsets.y
-        )
-        let offsets = offsetsForConstrainedCrop(
-            proposedGeometry,
-            in: bounds
-        )
+        let offsets = cropGeometry.offsets(for: location, in: bounds)
         xOffset = offsets.x
         yOffset = offsets.y
-    }
-
-    private func offsetsForConstrainedCrop(
-        _ cropGeometry: CropGeometry,
-        in bounds: CGRect
-    ) -> (x: Double, y: Double) {
-        let rawCropRect = cropGeometry.cropRect(in: bounds)
-        let outerRadius = outerPreviewCornerRadius(
-            in: bounds,
-            cropRect: rawCropRect
-        )
-        let cropRadius = previewCornerRadius(in: rawCropRect)
-        let cropRect = constrainedCropRect(
-            rawCropRect,
-            in: bounds,
-            outerRadius: outerRadius,
-            cropRadius: cropRadius
-        )
-
-        return cropGeometry.offsets(
-            for: CGPoint(x: cropRect.midX, y: cropRect.midY),
-            in: bounds
-        )
-    }
-
-    private func constrainedCropRect(
-        _ cropRect: CGRect,
-        in bounds: CGRect,
-        outerRadius: CGFloat,
-        cropRadius: CGFloat
-    ) -> CGRect {
-        guard
-            shapeGeometry.windowShape == .rounded,
-            outerRadius > 0,
-            cropRadius > 0
-        else {
-            return cropRect
-        }
-
-        var rect = cropRect
-        let permittedCornerCenterDistance = max(0, outerRadius - cropRadius)
-
-        for _ in 0..<8 {
-            rect = rect.clamped(to: bounds)
-
-            if rect.minX < bounds.minX + outerRadius, rect.minY < bounds.minY + outerRadius {
-                rect = rect.offsetBy(
-                    deltaToKeepCorner(
-                        innerCornerCenter: CGPoint(x: rect.minX + cropRadius, y: rect.minY + cropRadius),
-                        insideOuterCornerCenter: CGPoint(x: bounds.minX + outerRadius, y: bounds.minY + outerRadius),
-                        maximumDistance: permittedCornerCenterDistance
-                    )
-                )
-            }
-
-            if rect.maxX > bounds.maxX - outerRadius, rect.minY < bounds.minY + outerRadius {
-                rect = rect.offsetBy(
-                    deltaToKeepCorner(
-                        innerCornerCenter: CGPoint(x: rect.maxX - cropRadius, y: rect.minY + cropRadius),
-                        insideOuterCornerCenter: CGPoint(x: bounds.maxX - outerRadius, y: bounds.minY + outerRadius),
-                        maximumDistance: permittedCornerCenterDistance
-                    )
-                )
-            }
-
-            if rect.minX < bounds.minX + outerRadius, rect.maxY > bounds.maxY - outerRadius {
-                rect = rect.offsetBy(
-                    deltaToKeepCorner(
-                        innerCornerCenter: CGPoint(x: rect.minX + cropRadius, y: rect.maxY - cropRadius),
-                        insideOuterCornerCenter: CGPoint(x: bounds.minX + outerRadius, y: bounds.maxY - outerRadius),
-                        maximumDistance: permittedCornerCenterDistance
-                    )
-                )
-            }
-
-            if rect.maxX > bounds.maxX - outerRadius, rect.maxY > bounds.maxY - outerRadius {
-                rect = rect.offsetBy(
-                    deltaToKeepCorner(
-                        innerCornerCenter: CGPoint(x: rect.maxX - cropRadius, y: rect.maxY - cropRadius),
-                        insideOuterCornerCenter: CGPoint(x: bounds.maxX - outerRadius, y: bounds.maxY - outerRadius),
-                        maximumDistance: permittedCornerCenterDistance
-                    )
-                )
-            }
-        }
-
-        return rect.clamped(to: bounds)
-    }
-
-    private func deltaToKeepCorner(
-        innerCornerCenter: CGPoint,
-        insideOuterCornerCenter outerCornerCenter: CGPoint,
-        maximumDistance: CGFloat
-    ) -> CGSize {
-        let deltaX = innerCornerCenter.x - outerCornerCenter.x
-        let deltaY = innerCornerCenter.y - outerCornerCenter.y
-        let distance = hypot(deltaX, deltaY)
-
-        guard distance > maximumDistance, distance > 0 else {
-            return .zero
-        }
-
-        let scale = maximumDistance / distance
-        let constrainedCornerCenter = CGPoint(
-            x: outerCornerCenter.x + (deltaX * scale),
-            y: outerCornerCenter.y + (deltaY * scale)
-        )
-
-        return CGSize(
-            width: constrainedCornerCenter.x - innerCornerCenter.x,
-            height: constrainedCornerCenter.y - innerCornerCenter.y
-        )
     }
 
     private func previewCornerRadius(in bounds: CGRect) -> CGFloat {
@@ -537,47 +395,42 @@ private struct CropPositionSelector: View {
             return 0
         }
 
-        let paneScale = min(
-            bounds.width / max(1, paneSize.width),
-            bounds.height / max(1, paneSize.height)
-        )
-        let scaledRadius = shapeGeometry.cornerRadius * paneScale
-        let maxRadius = min(bounds.width, bounds.height) / 2
+        let actualMaximumRadius = min(max(1, paneSize.width), max(1, paneSize.height)) / 2
+        let actualRadius = min(shapeGeometry.cornerRadius, actualMaximumRadius)
 
-        guard shapeGeometry.cornerRadius > 0 else {
+        guard actualRadius > 0 else {
             return 0
         }
 
-        return min(maxRadius, max(6, scaledRadius))
+        let radiusFraction = actualRadius / actualMaximumRadius
+        let previewMaximumRadius = min(bounds.width, bounds.height) / 2
+        let scaledRadius = radiusFraction * previewMaximumRadius
+
+        return min(previewMaximumRadius, max(6, scaledRadius))
     }
 
     private func outerPreviewCornerRadius(
         in bounds: CGRect,
         cropRect: CGRect
     ) -> CGFloat {
-        guard shapeGeometry.windowShape == .circle else {
-            return previewCornerRadius(in: bounds)
+        switch shapeGeometry.windowShape {
+        case .circle:
+            return min(
+                bounds.width / 2,
+                bounds.height / 2,
+                cropRect.width / 2,
+                cropRect.height / 2
+            )
+        case .rounded:
+            let outerRadius = previewCornerRadius(in: bounds)
+            let innerRadius = previewCornerRadius(in: cropRect)
+
+            guard innerRadius > 0 else {
+                return outerRadius
+            }
+
+            return min(outerRadius, max(0, innerRadius - 2))
         }
-
-        return min(
-            bounds.width / 2,
-            bounds.height / 2,
-            cropRect.width / 2,
-            cropRect.height / 2
-        )
-    }
-}
-
-private extension CGRect {
-    func clamped(to bounds: CGRect) -> CGRect {
-        offsetBy(
-            dx: min(max(bounds.minX - minX, 0), bounds.maxX - maxX),
-            dy: min(max(bounds.minY - minY, 0), bounds.maxY - maxY)
-        )
-    }
-
-    func offsetBy(_ delta: CGSize) -> CGRect {
-        offsetBy(dx: delta.width, dy: delta.height)
     }
 }
 
